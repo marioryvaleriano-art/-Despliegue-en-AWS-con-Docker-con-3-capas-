@@ -1,0 +1,187 @@
+Manual Técnico de Implementación y Despliegue
+Sistema Bodega Peirano
+Índice de la Documentación Técnica
+
+En esta etapa se realizó la organización de los apartados principales que conforman la documentación técnica oficial del sistema Bodega Peirano.
+La finalidad de esta estructura es mantener una guía clara, ordenada y comprensible para la instalación, configuración y mantenimiento del proyecto.
+
+Los apartados definidos fueron los siguientes:
+
+Manual de implementación
+Arquitectura utilizada
+Explicación de puertos
+Configuración de Security Groups
+Explicación de comunicación privada
+Variables de entorno utilizadas
+
+Esta estructura permitirá documentar correctamente todo el proceso técnico del sistema y facilitar futuras implementaciones o mantenimientos.
+
+1. Introducción
+
+El presente documento describe el proceso de instalación, configuración y despliegue del sistema Bodega Peirano utilizando contenedores Docker.
+
+El sistema está compuesto por:
+
+Frontend desarrollado en Angular
+Backend desarrollado en Spring Boot
+Base de datos SQL Server
+Contenedores Docker para despliegue
+
+El objetivo principal es garantizar una implementación organizada, portable y fácil de mantener.
+
+2. Manual de Implementación
+2.1 Instalación de Docker
+Instalación paso a paso
+sudo apt update
+sudo apt install docker.io -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+newgrp docker
+Instalación rápida
+sudo apt update && sudo apt install docker.io -y && sudo systemctl start docker && sudo systemctl enable docker && sudo usermod -aG docker $USER && newgrp docker
+2.2 Verificación de Docker
+docker --version
+2.3 Visualización de IP Pública
+curl ifconfig.me
+2.4 Despliegue de SQL Server
+docker run -d \
+--name sqlserver-db \
+-e SA_PASSWORD="Mariory12345!" \
+-e ACCEPT_EULA="Y" \
+-e MSSQL_PID="Express" \
+-p 1433:1433 \
+-v sqlserver_data:/var/opt/mssql \
+mcr.microsoft.com/mssql/server:2022-latest
+2.5 Despliegue del Backend
+docker run -d \
+--name mariory-backend \
+--restart unless-stopped \
+-p 8085:8085 \
+-e PORT=8085 \
+-e TZ=America/Lima \
+-e DATABASE_URL="jdbc:sqlserver://54.90.233.22:1433;databaseName=BodegaPeiranoDBF;encrypt=false;trustServerCertificate=true" \
+-e DATABASE_USERNAME=sa \
+-e DATABASE_PASSWORD="Mariory12345!" \
+-e DATABASE_DRIVER=com.microsoft.sqlserver.jdbc.SQLServerDriver \
+jazett/springboot-sqlserver
+2.6 Verificación de APIs
+
+Swagger UI:
+
+http://54.234.169.129:8085/swagger-ui.html
+2.7 Despliegue del Frontend
+docker pull jazett/frontend-peirano
+docker run -d \
+-p 80:80 \
+--name mariory-frontend \
+-e BACKEND_URL="http://54.234.169.129:8085" \
+jazett/frontend-peirano
+3. Arquitectura Utilizada
+
+La arquitectura del sistema está basada en una estructura cliente-servidor distribuida mediante contenedores Docker.
+
+La comunicación del sistema funciona de la siguiente manera:
+
+Usuario
+   │
+   ▼
+Frontend Angular + Nginx
+   │
+   ▼
+Backend Spring Boot
+   │
+   ▼
+SQL Server
+Componentes utilizados
+Componente	Tecnología
+Frontend	Angular
+Backend	Spring Boot
+Base de Datos	SQL Server
+Contenedores	Docker
+Servidor Web	Nginx
+4. Explicación de Puertos
+
+Los servicios utilizan distintos puertos para permitir la comunicación entre componentes.
+
+Servicio	Puerto	Función
+Frontend Angular/Nginx	80	Acceso web de usuarios
+Backend Spring Boot	8085	API REST
+SQL Server	1433	Base de datos
+5. Configuración de Security Groups
+
+Para permitir el acceso correcto al sistema, se configuraron reglas de seguridad en el servidor.
+
+Reglas utilizadas
+Puerto	Protocolo	Uso
+80	TCP	Acceso al frontend
+8085	TCP	Acceso al backend
+1433	TCP	Conexión SQL Server
+
+Estas configuraciones permiten controlar el acceso externo a cada servicio desplegado.
+
+6. Explicación de Comunicación Privada
+
+La comunicación interna del sistema se realiza mediante conexiones entre contenedores Docker y servicios expuestos.
+
+Flujo de comunicación
+El usuario accede al frontend Angular.
+Angular consume APIs del backend Spring Boot.
+Spring Boot se conecta a SQL Server.
+SQL Server responde consultas y transacciones.
+
+Toda la comunicación se realiza utilizando direcciones IP y puertos configurados mediante variables de entorno.
+
+7. Variables de Entorno Utilizadas
+
+Las variables de entorno permiten configurar dinámicamente los servicios desplegados.
+
+Backend
+Variable	Descripción
+PORT	Puerto del backend
+TZ	Zona horaria
+DATABASE_URL	URL de conexión SQL Server
+DATABASE_USERNAME	Usuario SQL
+DATABASE_PASSWORD	Contraseña SQL
+DATABASE_DRIVER	Driver JDBC
+Frontend
+Variable	Descripción
+BACKEND_URL	URL del backend consumido por Angular
+8. Comandos Docker Utilizados
+Ver contenedores activos
+docker ps
+Ver todos los contenedores
+docker ps -a
+Ver logs del backend
+docker logs --tail 100 -f mariory-backend
+Iniciar contenedor
+docker start <nombre_contenedor>
+
+Ejemplo:
+
+docker start mariory-frontend
+Detener contenedor
+docker stop <nombre_contenedor>
+Eliminar contenedor
+docker rm <nombre_contenedor>
+Detener y eliminar contenedor
+docker stop mariory-frontend && docker rm mariory-frontend
+9. Flujo General del Sistema
+
+El orden recomendado de ejecución es el siguiente:
+
+1. Levantar SQL Server
+docker start sqlserver-db
+2. Levantar Backend
+docker start mariory-backend
+3. Levantar Frontend
+docker start mariory-frontend
+10. Conclusión
+
+La implementación del sistema Bodega Peirano mediante Docker permite una arquitectura moderna, portable y escalable.
+
+Gracias al uso de contenedores:
+
+el despliegue es más rápido,
+la administración es más sencilla,
+y el mantenimiento del sistema se vuelve más eficiente.
