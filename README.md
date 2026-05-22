@@ -1,4 +1,4 @@
-Estructuración de contenido para el archivo README.md
+Contenido para el archivo README.md
 
 En esta etapa se realizó la definición de la estructura base del archivo README.md del repositorio del proyecto Bodega Peirano.
 El objetivo principal de este archivo es brindar una explicación general del sistema, facilitar su comprensión y permitir que cualquier desarrollador pueda instalar, ejecutar y entender el proyecto de manera rápida.
